@@ -1,0 +1,159 @@
+"""Acceso a datos: traduce ProductQuery a SQL sobre MySQL."""
+
+from sqlalchemy import and_, case, func, or_, select
+from sqlalchemy.orm import Session
+
+from .catalog_data import MASK_PALETTES, PRICE_BUCKETS, PRODUCT_CATEGORIES, PRODUCT_SIZES
+from .catalog_engine import (
+    CatalogFacets,
+    PaginationMeta,
+    ProductQuery,
+    build_pagination_meta,
+    matches_price_buckets,
+    normalize_text,
+    resolve_price_bucket,
+)
+from .models import Product
+
+RELATED_LIMIT = 3
+
+
+def _search_conditions(query: ProductQuery) -> list:
+    conditions: list = []
+    term = normalize_text(query.search)
+    if term:
+        conditions.append(Product.search_blob.contains(term, autoescape=True))
+    return conditions
+
+
+def _filter_conditions(query: ProductQuery) -> list:
+    conditions = _search_conditions(query)
+
+    if query.category_ids:
+        conditions.append(Product.category_id.in_(query.category_ids))
+    if query.size_ids:
+        conditions.append(Product.size_id.in_(query.size_ids))
+    if query.colors:
+        conditions.append(Product.accent_color.in_(query.colors))
+
+    buckets = [
+        bucket
+        for bucket in (resolve_price_bucket(bucket_id) for bucket_id in query.price_bucket_ids)
+        if bucket is not None
+    ]
+    if buckets:
+        price_conditions = []
+        for bucket in buckets:
+            maximum = bucket["maxMXN"]
+            condition = Product.price_mxn >= bucket["minMXN"]
+            if maximum is not None:
+                condition = and_(condition, Product.price_mxn <= maximum)
+            price_conditions.append(condition)
+        conditions.append(or_(*price_conditions))
+
+    if query.only_in_stock:
+        conditions.append(Product.in_stock.is_(True))
+
+    return conditions
+
+
+def _order_by(sort: str) -> list:
+    if sort == "price-asc":
+        return [Product.price_mxn.asc(), Product.position.asc()]
+    if sort == "price-desc":
+        return [Product.price_mxn.desc(), Product.position.asc()]
+    if sort == "newest":
+        return [Product.created_at.desc(), Product.position.asc()]
+    if sort == "rating":
+        return [Product.rating.desc(), Product.reviews_count.desc(), Product.position.asc()]
+    return [Product.position.asc()]
+
+
+def list_products(db: Session, query: ProductQuery) -> tuple[list[Product], PaginationMeta]:
+    conditions = _filter_conditions(query)
+    total = db.scalar(select(func.count()).select_from(Product).where(*conditions)) or 0
+    meta = build_pagination_meta(int(total), query.page, query.per_page)
+    offset = (meta.page - 1) * meta.per_page
+
+    stmt = (
+        select(Product)
+        .where(*conditions)
+        .order_by(*_order_by(query.sort))
+        .offset(offset)
+        .limit(meta.per_page)
+    )
+    return list(db.scalars(stmt).all()), meta
+
+
+def get_catalog_facets(db: Session, query: ProductQuery) -> CatalogFacets:
+    """Las facetas se calculan sobre el conjunto que respeta solo la búsqueda de texto."""
+    conditions = _search_conditions(query)
+    rows = list(db.scalars(select(Product).where(*conditions)).all())
+    total = len(rows)
+
+    categories = [
+        {
+            "id": category["id"],
+            "label": category["label"],
+            "count": sum(1 for row in rows if row.category_id == category["id"]),
+        }
+        for category in PRODUCT_CATEGORIES
+    ]
+    sizes = [
+        {
+            "id": size["id"],
+            "label": size["label"],
+            "count": sum(1 for row in rows if row.size_id == size["id"]),
+        }
+        for size in PRODUCT_SIZES
+    ]
+    colors = [
+        {
+            "id": color_id,
+            "label": palette["label"],
+            "hex": palette["swatch"],
+            "count": sum(1 for row in rows if row.accent_color == color_id),
+        }
+        for color_id, palette in MASK_PALETTES.items()
+    ]
+    price_buckets = [
+        {
+            "id": bucket["id"],
+            "label": bucket["label"],
+            "count": sum(1 for row in rows if matches_price_buckets(row.price_mxn, [bucket])),
+        }
+        for bucket in PRICE_BUCKETS
+    ]
+
+    return CatalogFacets(
+        categories=categories,
+        sizes=sizes,
+        colors=colors,
+        price_buckets=price_buckets,
+        total_products=total,
+    )
+
+
+def find_product_by_slug(db: Session, slug: str) -> Product | None:
+    return db.scalar(select(Product).where(Product.slug == slug))
+
+
+def list_related_products(
+    db: Session, product: Product, limit: int = RELATED_LIMIT
+) -> list[Product]:
+    score = (
+        case((Product.category_id == product.category_id, 2), else_=0)
+        + case((Product.mask_style == product.mask_style, 2), else_=0)
+        + case((Product.accent_color == product.accent_color, 1), else_=0)
+    )
+    stmt = (
+        select(Product)
+        .where(Product.id != product.id)
+        .order_by(score.desc(), Product.rating.desc(), Product.position.asc())
+        .limit(limit)
+    )
+    return list(db.scalars(stmt).all())
+
+
+def list_all_slugs(db: Session) -> list[str]:
+    return list(db.scalars(select(Product.slug).order_by(Product.position.asc())).all())
