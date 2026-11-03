@@ -13,6 +13,7 @@ from .catalog_data import (
     SORT_IDS,
 )
 from .catalog_engine import ProductQuery
+from .localization import resolve_lang
 
 PARAM = {
     "search": "q",
@@ -24,6 +25,7 @@ PARAM = {
     "sort": "orden",
     "page": "pagina",
     "perPage": "perPage",
+    "lang": "lang",
 }
 
 
@@ -74,4 +76,5 @@ def parse_catalog_params(params: Mapping[str, str]) -> ProductQuery:
         sort=_read_sort(params),
         page=_read_page(params),
         per_page=_read_per_page(params),
+        lang=resolve_lang(params.get(PARAM["lang"])),
     )

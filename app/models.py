@@ -41,6 +41,16 @@ class Product(Base):
     created_at: Mapped[date] = mapped_column(Date, nullable=False)
     # Texto normalizado (sin acentos, minúsculas) usado por la búsqueda.
     search_blob: Mapped[str] = mapped_column(Text, nullable=False)
+    # Traducciones al inglés. Nullable: sin traducción se cae al español.
+    title_en: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    subtitle_en: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    description_en: Mapped[str | None] = mapped_column(Text, nullable=True)
+    long_description_en: Mapped[str | None] = mapped_column(Text, nullable=True)
+    badge_label_en: Mapped[str | None] = mapped_column(String(48), nullable=True)
+    finish_en: Mapped[str | None] = mapped_column(String(96), nullable=True)
+    material_en: Mapped[str | None] = mapped_column(String(96), nullable=True)
+    lining_en: Mapped[str | None] = mapped_column(String(96), nullable=True)
+    search_blob_en: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     @property
     def badge(self) -> dict[str, str] | None:

@@ -3,7 +3,16 @@
 from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.orm import Session
 
-from .catalog_data import MASK_PALETTES, PRICE_BUCKETS, PRODUCT_CATEGORIES, PRODUCT_SIZES
+from .catalog_data import (
+    CATEGORY_LABELS_EN,
+    MASK_PALETTES,
+    PALETTE_LABELS_EN,
+    PRICE_BUCKET_LABELS_EN,
+    PRICE_BUCKETS,
+    PRODUCT_CATEGORIES,
+    PRODUCT_SIZES,
+    SIZE_LABELS_EN,
+)
 from .catalog_engine import (
     CatalogFacets,
     PaginationMeta,
@@ -22,7 +31,15 @@ def _search_conditions(query: ProductQuery) -> list:
     conditions: list = []
     term = normalize_text(query.search)
     if term:
-        conditions.append(Product.search_blob.contains(term, autoescape=True))
+        # Se busca en ambos idiomas: basta con que coincida uno de los blobs.
+        # Un search_blob_en nulo no rompe el or_ porque el resultado TRUE del
+        # blob español se impone; si no coincide ninguno, el filtro descarta.
+        conditions.append(
+            or_(
+                Product.search_blob.contains(term, autoescape=True),
+                Product.search_blob_en.contains(term, autoescape=True),
+            )
+        )
     return conditions
 
 
@@ -90,11 +107,16 @@ def get_catalog_facets(db: Session, query: ProductQuery) -> CatalogFacets:
     conditions = _search_conditions(query)
     rows = list(db.scalars(select(Product).where(*conditions)).all())
     total = len(rows)
+    use_en = query.lang == "en"
 
     categories = [
         {
             "id": category["id"],
-            "label": category["label"],
+            "label": (
+                CATEGORY_LABELS_EN.get(category["id"], category["label"])
+                if use_en
+                else category["label"]
+            ),
             "count": sum(1 for row in rows if row.category_id == category["id"]),
         }
         for category in PRODUCT_CATEGORIES
@@ -102,7 +124,9 @@ def get_catalog_facets(db: Session, query: ProductQuery) -> CatalogFacets:
     sizes = [
         {
             "id": size["id"],
-            "label": size["label"],
+            "label": (
+                SIZE_LABELS_EN.get(size["id"], size["label"]) if use_en else size["label"]
+            ),
             "count": sum(1 for row in rows if row.size_id == size["id"]),
         }
         for size in PRODUCT_SIZES
@@ -110,7 +134,9 @@ def get_catalog_facets(db: Session, query: ProductQuery) -> CatalogFacets:
     colors = [
         {
             "id": color_id,
-            "label": palette["label"],
+            "label": (
+                PALETTE_LABELS_EN.get(color_id, palette["label"]) if use_en else palette["label"]
+            ),
             "hex": palette["swatch"],
             "count": sum(1 for row in rows if row.accent_color == color_id),
         }
@@ -119,7 +145,11 @@ def get_catalog_facets(db: Session, query: ProductQuery) -> CatalogFacets:
     price_buckets = [
         {
             "id": bucket["id"],
-            "label": bucket["label"],
+            "label": (
+                PRICE_BUCKET_LABELS_EN.get(bucket["id"], bucket["label"])
+                if use_en
+                else bucket["label"]
+            ),
             "count": sum(1 for row in rows if matches_price_buckets(row.price_mxn, [bucket])),
         }
         for bucket in PRICE_BUCKETS

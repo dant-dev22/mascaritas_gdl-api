@@ -5,9 +5,12 @@ from dataclasses import dataclass, field
 
 from .catalog_data import (
     CATEGORY_LABELS,
+    CATEGORY_LABELS_EN,
     MASK_PALETTES,
+    PALETTE_LABELS_EN,
     PRICE_BUCKETS,
     SIZE_LABELS,
+    SIZE_LABELS_EN,
 )
 
 
@@ -22,6 +25,7 @@ class ProductQuery:
     sort: str = "featured"
     page: int = 1
     per_page: int = 9
+    lang: str = "es"
 
 
 def normalize_text(value: str) -> str:
@@ -42,16 +46,26 @@ def build_search_blob(
     category_id: str,
     size_id: str,
     tags: list[str],
+    lang: str = "es",
 ) -> str:
+    if lang == "en":
+        palette_label = PALETTE_LABELS_EN.get(accent_color, MASK_PALETTES[accent_color]["label"])
+        category_label = CATEGORY_LABELS_EN.get(category_id, "")
+        size_label = SIZE_LABELS_EN.get(size_id, "")
+    else:
+        palette_label = MASK_PALETTES[accent_color]["label"]
+        category_label = CATEGORY_LABELS.get(category_id, "")
+        size_label = SIZE_LABELS.get(size_id, "")
+
     parts = [
         title,
         subtitle,
         description,
         sku,
         mask_style,
-        MASK_PALETTES[accent_color]["label"],
-        CATEGORY_LABELS.get(category_id, ""),
-        SIZE_LABELS.get(size_id, ""),
+        palette_label,
+        category_label,
+        size_label,
         *tags,
     ]
     return normalize_text(" ".join(parts))

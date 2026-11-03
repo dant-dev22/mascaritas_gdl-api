@@ -109,3 +109,42 @@ SORT_IDS = [item["id"] for item in PRODUCT_SORT_OPTIONS]
 
 CATEGORY_LABELS = {item["id"]: item["label"] for item in PRODUCT_CATEGORIES}
 SIZE_LABELS = {item["id"]: item["label"] for item in PRODUCT_SIZES}
+
+# Idiomas soportados por el catálogo. El español es el idioma por defecto.
+SUPPORTED_LANGS = ("es", "en")
+DEFAULT_LANG = "es"
+
+# Etiquetas en inglés de las facetas. No sustituyen a las españolas.
+PALETTE_LABELS_EN: dict[str, str] = {
+    "gold": "Gold",
+    "green": "Green",
+    "red": "Red",
+    "blue": "Blue",
+    "purple": "Purple",
+    "silver": "Silver",
+}
+
+CATEGORY_LABELS_EN: dict[str, str] = {
+    "semi-pro": "Semi-Pro",
+    "profesional": "Professional",
+}
+
+SIZE_LABELS_EN: dict[str, str] = {
+    "infantil": "Kids",
+    "adulto": "Adult",
+    "adulto-xl": "Adult XL",
+}
+
+PRICE_BUCKET_LABELS_EN: dict[str, str] = {
+    "under-500": "Under $500",
+    "under-1000": "Under $1,000",
+    "over-1000": "Over $1,000",
+}
+
+SORT_LABELS_EN: dict[str, str] = {
+    "featured": "Featured",
+    "price-asc": "Price: low to high",
+    "price-desc": "Price: high to low",
+    "newest": "Newest",
+    "rating": "Top rated",
+}

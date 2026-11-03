@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..localization import localize_product, resolve_lang
 from ..query_params import parse_catalog_params
 from ..repository import (
     find_product_by_slug,
@@ -44,7 +45,7 @@ def list_catalog(
     response.headers.update(NO_STORE)
     return CatalogListResponse(
         result=PaginatedProducts(
-            items=[ProductOut.model_validate(item) for item in items],
+            items=[ProductOut.model_validate(localize_product(item, query.lang)) for item in items],
             meta=PaginationMetaOut.model_validate(meta),
         ),
         facets=CatalogFacetsOut.model_validate(facets),
@@ -65,6 +66,7 @@ def list_facets(
 @router.get("/{slug}", response_model=CatalogProductResponse)
 def get_product(
     slug: str,
+    request: Request,
     response: Response,
     db: Session = Depends(get_db),
 ):
@@ -76,9 +78,10 @@ def get_product(
             headers=NO_STORE,
         )
 
+    lang = resolve_lang(request.query_params.get("lang"))
     related = list_related_products(db, product)
     response.headers.update(NO_STORE)
     return CatalogProductResponse(
-        product=ProductOut.model_validate(product),
-        related=[ProductOut.model_validate(item) for item in related],
+        product=ProductOut.model_validate(localize_product(product, lang)),
+        related=[ProductOut.model_validate(localize_product(item, lang)) for item in related],
     )
