@@ -34,7 +34,7 @@ TEST_PRODUCTS: list[dict] = [
         "title": "[TEST] Sargento Tiburón QA",
         "subtitle": "Dorado · Clásica",
         "description": "Producto de prueba. Máscara dorada para validar filtros de color y categoría.",
-        "long_description": "Registro de QA. No es una pieza real del taller: se usa para verificar el catálogo, la ficha de producto y el carrito en producción.",
+        "long_description": "Registro de QA. No es una pieza real del catálogo: se usa para verificar el catálogo, la ficha de producto y el carrito en producción.",
         "price_mxn": 899,
         "old_price_mxn": 999,
         "badge_variant": "last-units",

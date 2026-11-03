@@ -26,7 +26,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title="Mascaritas GDL API",
     version="0.1.0",
-    description="API del catálogo de máscaras de lucha libre hechas a mano en Guadalajara.",
+    description="API del catálogo de máscaras de lucha libre de Mascaritas GDL.",
     lifespan=lifespan,
 )
 
