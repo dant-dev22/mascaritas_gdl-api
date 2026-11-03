@@ -70,24 +70,14 @@ MASK_PALETTES: dict[str, dict[str, str]] = {
 
 PRODUCT_CATEGORIES: list[dict[str, str]] = [
     {
-        "id": "clasicas",
-        "label": "Clásicas",
-        "description": "Diseños tradicionales de la lucha libre mexicana.",
-    },
-    {
         "id": "semi-pro",
         "label": "Semi-Pro",
         "description": "Reforzadas para entrenamiento y funciones locales.",
     },
     {
-        "id": "coleccion",
-        "label": "Colección",
-        "description": "Ediciones limitadas y homenajes a leyendas.",
-    },
-    {
-        "id": "personalizadas",
-        "label": "Personalizadas",
-        "description": "Base lista para tu diseño, nombre o escudo.",
+        "id": "profesional",
+        "label": "Profesional",
+        "description": "Ediciones de colección y acabados premium.",
     },
 ]
 
@@ -98,9 +88,9 @@ PRODUCT_SIZES: list[dict[str, str]] = [
 ]
 
 PRICE_BUCKETS: list[dict[str, object]] = [
+    {"id": "under-500", "label": "Menos de $500", "minMXN": 0, "maxMXN": 499},
     {"id": "under-1000", "label": "Menos de $1,000", "minMXN": 0, "maxMXN": 999},
-    {"id": "1000-1299", "label": "$1,000 – $1,299", "minMXN": 1000, "maxMXN": 1299},
-    {"id": "over-1300", "label": "$1,300 o más", "minMXN": 1300, "maxMXN": None},
+    {"id": "over-1000", "label": "Más de $1,000", "minMXN": 1000, "maxMXN": None},
 ]
 
 PRODUCT_SORT_OPTIONS: list[dict[str, str]] = [
