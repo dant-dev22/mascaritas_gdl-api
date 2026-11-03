@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -27,8 +27,8 @@ class ProductOut(CamelModel):
     subtitle: str
     description: str
     long_description: str
-    price_mxn: int
-    old_price_mxn: int | None = None
+    price_mxn: int = Field(serialization_alias="priceMXN")
+    old_price_mxn: int | None = Field(default=None, serialization_alias="oldPriceMXN")
     badge: ProductBadge | None = None
     accent_color: str
     category_id: str
