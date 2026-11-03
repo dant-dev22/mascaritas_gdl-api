@@ -42,7 +42,7 @@ class Product(Base):
     # Texto normalizado (sin acentos, minúsculas) usado por la búsqueda.
     search_blob: Mapped[str] = mapped_column(Text, nullable=False)
     # Traducciones al inglés. Nullable: sin traducción se cae al español.
-    title_en: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # El nombre comercial (`title`) no se traduce.
     subtitle_en: Mapped[str | None] = mapped_column(String(128), nullable=True)
     description_en: Mapped[str | None] = mapped_column(Text, nullable=True)
     long_description_en: Mapped[str | None] = mapped_column(Text, nullable=True)

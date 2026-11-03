@@ -13,8 +13,8 @@ from .seed_data import PRODUCTS
 from .seed_data_en import PRODUCTS_EN
 
 # Campos de texto que tienen versión inglesa (`*_en`) en el modelo.
+# El nombre comercial (`title`) no se traduce.
 _TRANSLATABLE_KEYS = (
-    "title",
     "subtitle",
     "description",
     "long_description",
@@ -67,7 +67,7 @@ def build_rows() -> list[dict]:
         has_translation = _apply_translation(row, PRODUCTS_EN.get(row["slug"]))
         row["search_blob_en"] = (
             build_search_blob(
-                title=row["title_en"] or row["title"],
+                title=row["title"],
                 subtitle=row["subtitle_en"] or row["subtitle"],
                 description=row["description_en"] or row["description"],
                 sku=row["sku"],

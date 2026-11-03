@@ -4,14 +4,14 @@ AVISO: es un BORRADOR pendiente de revisión editorial por parte del cliente.
 Los textos son una propuesta de traducción y no deben considerarse definitivos.
 
 Diccionario indexado por `slug`: para cada producto incluye los campos de texto
-traducibles (`title`, `subtitle`, `description`, `long_description`, `finish`,
-`material`, `lining`) y `badge_label` solo cuando el original lo tenga.
+traducibles (`subtitle`, `description`, `long_description`, `finish`, `material`,
+`lining`) y `badge_label` solo cuando el original lo tenga. El nombre comercial
+(`title`) no se traduce: se conserva tal cual en español.
 Se respetan los límites de longitud de las columnas del ORM.
 """
 
 PRODUCTS_EN: dict[str, dict[str, str]] = {
     "sargento-tiburon-edicion-dorada": {
-        "title": "Sergeant Shark",
         "subtitle": "Golden Edition",
         "description": (
             "A mask inspired by the classic Mil Máscaras style, with gold-leaf "
@@ -30,7 +30,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "badge_label": "Last pieces",
     },
     "diablo-verde-ring-resist": {
-        "title": "Green Devil",
         "subtitle": "Ring Resist Edition",
         "description": (
             "Reinforced double lining, contrast stitching, and firm horns. Built "
@@ -47,7 +46,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "badge_label": "Semi-Pro",
     },
     "el-galactico-mil-mascaras-tribute": {
-        "title": "The Galactic",
         "subtitle": "Mil Máscaras Tribute",
         "description": (
             "A tribute to the legend. Raised center star and a premium satin finish "
@@ -65,7 +63,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "badge_label": "Last pieces",
     },
     "aguila-de-plata-clasica-de-gala": {
-        "title": "Silver Eagle",
         "subtitle": "Gala Classic",
         "description": (
             "Eagle profile in polished silver with an articulated beak and wings "
@@ -81,7 +78,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Double breathable cotton lining",
     },
     "pantera-nocturna-edicion-medianoche": {
-        "title": "Night Panther",
         "subtitle": "Midnight Edition",
         "description": (
             "Deep purple with stiff ears and embroidered whiskers. Total presence "
@@ -98,7 +94,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Double 4 mm padded lining",
     },
     "serpiente-azteca-serie-tenochtitlan": {
-        "title": "Aztec Serpent",
         "subtitle": "Tenochtitlan Series",
         "description": (
             "Continuous raised scales and golden fangs. The most detailed piece in "
@@ -116,7 +111,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "badge_label": "New",
     },
     "mini-diablo-infantil-ring-resist": {
-        "title": "Mini Devil",
         "subtitle": "Kids Ring Resist",
         "description": (
             "Kids version with the same durability as the adult model, sized for "
@@ -133,7 +127,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Soft hypoallergenic lining",
     },
     "mini-aguila-infantil-dorada": {
-        "title": "Mini Eagle",
         "subtitle": "Kids Golden",
         "description": (
             "Golden eagle in kids size. The favorite for school festivals and themed "
@@ -149,7 +142,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Soft hypoallergenic lining",
     },
     "sargento-tiburon-azul-serie-arena": {
-        "title": "Blue Sergeant Shark",
         "subtitle": "Sand Series",
         "description": (
             "The Sergeant silhouette in deep blue, with gills stitched in contrast "
@@ -166,7 +158,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Double 4 mm padded lining",
     },
     "pantera-roja-cazador-urbano": {
-        "title": "Red Panther",
         "subtitle": "Urban Hunter",
         "description": (
             "Crimson red with low-set ears and a reinforced rim. An aggressive, "
@@ -183,7 +174,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "badge_label": "Semi-Pro",
     },
     "galactico-celeste-tribute-ii": {
-        "title": "Sky Galactic",
         "subtitle": "Tribute II",
         "description": (
             "The second tribute: a night sky in sky blue with embroidered "
@@ -200,7 +190,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Synthetic silk lining",
     },
     "serpiente-esmeralda-serie-tenochtitlan-ii": {
-        "title": "Emerald Serpent",
         "subtitle": "Tenochtitlan Series II",
         "description": (
             "Emerald scales with silver fangs and a forked tongue embroidered in red."
@@ -216,7 +205,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "badge_label": "Last pieces",
     },
     "mascara-en-blanco-base-personalizable": {
-        "title": "Blank Mask",
         "subtitle": "Customizable Base",
         "description": (
             "A smooth canvas ready to paint, embroider, or attach your crest. "
@@ -233,7 +221,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Double breathable cotton lining",
     },
     "base-personalizable-xl-lienzo-negro": {
-        "title": "Customizable Base XL",
         "subtitle": "Black Canvas",
         "description": (
             "Black base in XL size for larger heads. Ready for light and metallic "
@@ -249,7 +236,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Memory foam crown",
     },
     "diablo-dorado-fuego-sagrado": {
-        "title": "Golden Devil",
         "subtitle": "Sacred Fire",
         "description": (
             "Golden horns on a black base with flames embroidered in crimson thread."
@@ -266,7 +252,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "badge_label": "New",
     },
     "aguila-purpura-noche-tapatia": {
-        "title": "Purple Eagle",
         "subtitle": "Guadalajara Night",
         "description": (
             "Night purple with full wings and a beak embroidered in emerald green."
@@ -281,7 +266,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Double breathable cotton lining",
     },
     "tiburon-carmesi-sangre-de-ring": {
-        "title": "Crimson Shark",
         "subtitle": "Ring Blood",
         "description": (
             "Intense crimson with a stiff dorsal fin and golden gills."
@@ -297,7 +281,6 @@ PRODUCTS_EN: dict[str, dict[str, str]] = {
         "lining": "Memory foam crown",
     },
     "galactico-dorado-leyenda-eterna": {
-        "title": "Golden Galactic",
         "subtitle": "Eternal Legend",
         "description": (
             "The finale of the Tribute trilogy: a golden star on a deep black sky."

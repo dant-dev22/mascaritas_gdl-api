@@ -8,8 +8,8 @@ from .models import Product
 
 # Campos cuyo texto se traduce al inglés. La clave del diccionario es el
 # nombre de la columna en español y el sufijo `_en` da la columna inglesa.
+# El nombre comercial (`title`) nunca se traduce.
 _TRANSLATABLE_FIELDS = (
-    "title",
     "subtitle",
     "description",
     "long_description",
