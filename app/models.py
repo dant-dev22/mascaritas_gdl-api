@@ -1,9 +1,14 @@
 """Modelos ORM."""
 
-from datetime import date
+from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, Boolean, Date, Float, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
+def utcnow() -> datetime:
+    """Fecha-hora UTC sin zona, para columnas `DateTime` de MySQL."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class Base(DeclarativeBase):
@@ -71,3 +76,44 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(24), nullable=False, default="admin")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)
+
+
+class Order(Base):
+    """Pedido rastreable. Se alimenta a mano desde el panel admin."""
+
+    __tablename__ = "orders"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    # Código público que el cliente usa para consultar su pedido (ej. MG-8F3K2A).
+    code: Mapped[str] = mapped_column(String(16), unique=True, nullable=False, index=True)
+    customer_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    # Correo o teléfono de contacto. Opcional y nunca se expone en el rastreo público.
+    customer_contact: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    # Identificador de paquetería (ver `order_data.ORDER_CARRIERS`) o texto libre.
+    carrier: Mapped[str | None] = mapped_column(String(48), nullable=True)
+    tracking_number: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="recibido")
+    # Notas internas del equipo: no se muestran al cliente.
+    internal_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=utcnow, onupdate=utcnow
+    )
+
+
+class OrderEvent(Base):
+    """Hito de la línea de tiempo de un pedido (visible para el cliente)."""
+
+    __tablename__ = "order_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    order_id: Mapped[str] = mapped_column(
+        String(32),
+        ForeignKey("orders.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    # Comentario opcional que sí puede leer el cliente.
+    note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)

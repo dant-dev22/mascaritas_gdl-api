@@ -1,6 +1,6 @@
 """Schemas de respuesta (Pydantic). Serializan en camelCase como espera el frontend."""
 
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -196,3 +196,71 @@ class ProductWrite(CamelModel):
         if self.old_price_mxn is not None and self.old_price_mxn < self.price_mxn:
             raise ValueError("oldPriceMXN debe ser mayor o igual que priceMXN")
         return self
+
+
+# --- Pedidos (rastreo público + panel admin) ---
+
+OrderStatus = Literal[
+    "recibido",
+    "en_preparacion",
+    "enviado",
+    "en_transito",
+    "entregado",
+    "cancelado",
+]
+
+
+class OrderEventOut(CamelModel):
+    """Hito visible de la línea de tiempo (sin notas internas)."""
+
+    status: str
+    note: str | None = None
+    created_at: datetime
+
+
+class OrderPublicOut(CamelModel):
+    """Vista pública del pedido: lo que ve el cliente con su código."""
+
+    code: str
+    status: str
+    customer_name: str
+    carrier: str | None = None
+    tracking_number: str | None = None
+    timeline: list[OrderEventOut]
+
+
+class AdminOrderOut(CamelModel):
+    """Vista del panel: incluye contacto y notas internas para el equipo."""
+
+    id: str
+    code: str
+    customer_name: str
+    customer_contact: str | None = None
+    carrier: str | None = None
+    tracking_number: str | None = None
+    status: str
+    internal_notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    timeline: list[OrderEventOut] = Field(default_factory=list)
+
+
+class PaginatedOrders(CamelModel):
+    items: list[AdminOrderOut]
+    meta: PaginationMetaOut
+
+
+class OrderWrite(CamelModel):
+    """Cuerpo de entrada para crear o editar un pedido.
+
+    `note` es un comentario opcional para el hito de la línea de tiempo y no
+    se guarda como columna del pedido.
+    """
+
+    customer_name: str = Field(min_length=1, max_length=120)
+    customer_contact: str | None = Field(default=None, max_length=160)
+    carrier: str | None = Field(default=None, max_length=48)
+    tracking_number: str | None = Field(default=None, max_length=64)
+    status: OrderStatus
+    note: str | None = Field(default=None, max_length=255)
+    internal_notes: str | None = None

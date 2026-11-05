@@ -43,6 +43,10 @@ JWT_EXPIRES_MINUTES: int = int(os.getenv("JWT_EXPIRES_MINUTES", "480"))
 LOGIN_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_MAX_ATTEMPTS", "5"))
 LOGIN_WINDOW_SECONDS: int = int(os.getenv("LOGIN_WINDOW_SECONDS", "300"))
 
+# Freno sobre el rastreo público: consultas fallidas por código antes de 429.
+ORDER_LOOKUP_MAX_ATTEMPTS: int = int(os.getenv("ORDER_LOOKUP_MAX_ATTEMPTS", "10"))
+ORDER_LOOKUP_WINDOW_SECONDS: int = int(os.getenv("ORDER_LOOKUP_WINDOW_SECONDS", "300"))
+
 # Credenciales del primer admin que crea `python -m app.create_admin`.
 ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "")
 ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")

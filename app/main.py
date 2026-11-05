@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import CORS_ORIGINS, IS_PRODUCTION, validate_security_config
 from .database import engine
 from .models import Base
-from .routers import admin_productos, auth, productos
+from .routers import admin_pedidos, admin_productos, auth, pedidos, productos
 
 # Falla en el arranque si la configuración de seguridad no es apta para producción.
 validate_security_config()
@@ -47,6 +47,8 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(admin_productos.router, prefix="/api")
+app.include_router(admin_pedidos.router, prefix="/api")
+app.include_router(pedidos.router, prefix="/api")
 app.include_router(productos.router, prefix="/api")
 
 

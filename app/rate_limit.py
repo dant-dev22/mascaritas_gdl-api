@@ -1,6 +1,6 @@
-"""Freno contra la fuerza bruta en el login, en memoria.
+"""Frenos contra la fuerza bruta en memoria.
 
-Deliberadamente simple: con una sola instancia del backend el límite es útil
+Deliberadamente simples: con una sola instancia del backend el límite es útil
 y no hace falta infraestructura extra. Si algún día corren varias réplicas,
 haría falta un almacén compartido (por ejemplo Redis).
 """
@@ -10,15 +10,21 @@ from threading import Lock
 
 from fastapi import HTTPException, status
 
-from .config import LOGIN_MAX_ATTEMPTS, LOGIN_WINDOW_SECONDS
+from .config import (
+    LOGIN_MAX_ATTEMPTS,
+    LOGIN_WINDOW_SECONDS,
+    ORDER_LOOKUP_MAX_ATTEMPTS,
+    ORDER_LOOKUP_WINDOW_SECONDS,
+)
 
 
-class LoginRateLimiter:
+class AttemptRateLimiter:
     """Cuenta intentos fallidos por clave dentro de una ventana móvil.
 
-    Se usa una clave por cuenta (el correo normalizado) en lugar de la IP: el
-    panel se sirve detrás del proxy de Next.js, así que todas las peticiones
-    llegan desde la misma IP y un límite por IP bloquearía a todos a la vez.
+    En el login se usa una clave por cuenta (el correo normalizado) en lugar de
+    la IP: el panel se sirve detrás del proxy de Next.js, así que todas las
+    peticiones llegan desde la misma IP y un límite por IP bloquearía a todos.
+    En el rastreo público la clave es el código de pedido consultado.
     """
 
     def __init__(self, max_attempts: int, window_seconds: int) -> None:
@@ -63,7 +69,12 @@ class LoginRateLimiter:
             self._failures.pop(key, None)
 
 
-login_limiter = LoginRateLimiter(
+login_limiter = AttemptRateLimiter(
     max_attempts=LOGIN_MAX_ATTEMPTS,
     window_seconds=LOGIN_WINDOW_SECONDS,
+)
+
+order_lookup_limiter = AttemptRateLimiter(
+    max_attempts=ORDER_LOOKUP_MAX_ATTEMPTS,
+    window_seconds=ORDER_LOOKUP_WINDOW_SECONDS,
 )

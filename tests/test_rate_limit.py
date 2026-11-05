@@ -5,19 +5,19 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.config import LOGIN_MAX_ATTEMPTS
-from app.rate_limit import LoginRateLimiter, login_limiter
+from app.rate_limit import AttemptRateLimiter, login_limiter
 
 KEY = "persona@test.local"
 
 
 def test_no_bloquea_sin_intentos_previos() -> None:
-    limiter = LoginRateLimiter(max_attempts=3, window_seconds=60)
+    limiter = AttemptRateLimiter(max_attempts=3, window_seconds=60)
 
     limiter.check(KEY)  # no debe lanzar
 
 
 def test_bloquea_al_agotar_los_intentos() -> None:
-    limiter = LoginRateLimiter(max_attempts=3, window_seconds=60)
+    limiter = AttemptRateLimiter(max_attempts=3, window_seconds=60)
     for _ in range(3):
         limiter.register_failure(KEY)
 
@@ -30,7 +30,7 @@ def test_bloquea_al_agotar_los_intentos() -> None:
 
 
 def test_reset_limpia_los_fallos() -> None:
-    limiter = LoginRateLimiter(max_attempts=2, window_seconds=60)
+    limiter = AttemptRateLimiter(max_attempts=2, window_seconds=60)
     limiter.register_failure(KEY)
     limiter.register_failure(KEY)
 
@@ -40,7 +40,7 @@ def test_reset_limpia_los_fallos() -> None:
 
 
 def test_los_fallos_expiran_con_la_ventana() -> None:
-    limiter = LoginRateLimiter(max_attempts=1, window_seconds=0)
+    limiter = AttemptRateLimiter(max_attempts=1, window_seconds=0)
     limiter.register_failure(KEY)
 
     limiter.check(KEY)  # la ventana ya venció, no debe lanzar
