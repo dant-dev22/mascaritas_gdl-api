@@ -57,3 +57,17 @@ class Product(Base):
         if self.badge_variant is None or self.badge_label is None:
             return None
         return {"variant": self.badge_variant, "label": self.badge_label}
+
+
+class User(Base):
+    """Cuenta del panel admin. Un solo rol (`admin`) en esta versión."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(160), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(24), nullable=False, default="admin")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[date] = mapped_column(Date, nullable=False, default=date.today)

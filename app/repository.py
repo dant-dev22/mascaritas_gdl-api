@@ -1,5 +1,8 @@
 """Acceso a datos: traduce ProductQuery a SQL sobre MySQL."""
 
+from datetime import date
+from uuid import uuid4
+
 from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.orm import Session
 
@@ -18,6 +21,7 @@ from .catalog_engine import (
     PaginationMeta,
     ProductQuery,
     build_pagination_meta,
+    build_search_blob,
     matches_price_buckets,
     normalize_text,
     resolve_price_bucket,
@@ -187,3 +191,112 @@ def list_related_products(
 
 def list_all_slugs(db: Session) -> list[str]:
     return list(db.scalars(select(Product.slug).order_by(Product.position.asc())).all())
+
+
+# --- Escritura (panel admin) ---
+
+# Campos de texto que tienen versión inglesa (`*_en`). `title` no se traduce.
+_EN_TEXT_FIELDS = (
+    "subtitle",
+    "description",
+    "long_description",
+    "badge_label",
+    "finish",
+    "material",
+    "lining",
+)
+
+
+def _search_blobs(data: dict) -> tuple[str, str | None]:
+    """Recalcula los blobs de búsqueda ES y EN a partir de los datos del producto.
+
+    Reutiliza `build_search_blob`, la misma función que el seed, para no
+    duplicar la lógica de normalización.
+    """
+    search_blob = build_search_blob(
+        title=data["title"],
+        subtitle=data["subtitle"],
+        description=data["description"],
+        sku=data["sku"],
+        mask_style=data["mask_style"],
+        accent_color=data["accent_color"],
+        category_id=data["category_id"],
+        size_id=data["size_id"],
+        tags=data["tags"],
+    )
+
+    has_translation = any(data.get(f"{key}_en") for key in _EN_TEXT_FIELDS)
+    if not has_translation:
+        return search_blob, None
+
+    search_blob_en = build_search_blob(
+        title=data["title"],
+        subtitle=data.get("subtitle_en") or data["subtitle"],
+        description=data.get("description_en") or data["description"],
+        sku=data["sku"],
+        mask_style=data["mask_style"],
+        accent_color=data["accent_color"],
+        category_id=data["category_id"],
+        size_id=data["size_id"],
+        tags=data["tags"],
+        lang="en",
+    )
+    return search_blob, search_blob_en
+
+
+def next_position(db: Session) -> int:
+    """Posición siguiente al final del catálogo (los IDs nuevos van al final)."""
+    current = db.scalar(select(func.max(Product.position)))
+    return int(current) + 1 if current is not None else 0
+
+
+def slug_exists(db: Session, slug: str, exclude_id: str | None = None) -> bool:
+    stmt = select(Product.id).where(Product.slug == slug)
+    if exclude_id is not None:
+        stmt = stmt.where(Product.id != exclude_id)
+    return db.scalar(stmt) is not None
+
+
+def sku_exists(db: Session, sku: str, exclude_id: str | None = None) -> bool:
+    stmt = select(Product.id).where(Product.sku == sku)
+    if exclude_id is not None:
+        stmt = stmt.where(Product.id != exclude_id)
+    return db.scalar(stmt) is not None
+
+
+def get_product_by_id(db: Session, product_id: str) -> Product | None:
+    return db.get(Product, product_id)
+
+
+def create_product(db: Session, data: dict) -> Product:
+    """Crea un producto calculando id, posición, fecha y blobs de búsqueda."""
+    search_blob, search_blob_en = _search_blobs(data)
+    product = Product(
+        **data,
+        id=uuid4().hex,
+        position=next_position(db),
+        created_at=date.today(),
+        search_blob=search_blob,
+        search_blob_en=search_blob_en,
+    )
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+def update_product(db: Session, product: Product, data: dict) -> Product:
+    """Sobrescribe todos los campos editables y recalcula los blobs."""
+    search_blob, search_blob_en = _search_blobs(data)
+    for key, value in data.items():
+        setattr(product, key, value)
+    product.search_blob = search_blob
+    product.search_blob_en = search_blob_en
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+def delete_product(db: Session, product: Product) -> None:
+    db.delete(product)
+    db.commit()
