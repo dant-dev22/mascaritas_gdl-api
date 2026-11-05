@@ -3,7 +3,7 @@
 import secrets
 from uuid import uuid4
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from .catalog_engine import PaginationMeta, build_pagination_meta
@@ -110,7 +110,13 @@ def update_order(db: Session, order: Order, data: dict) -> Order:
 
 
 def delete_order(db: Session, order: Order) -> None:
-    for event in list_events(db, order.id):
-        db.delete(event)
+    """Elimina el pedido y sus hitos.
+
+    Los hitos se borran primero con un DELETE directo: la clave foránea ya tiene
+    `ON DELETE CASCADE`, así que si dejáramos que el ORM los borrara después del
+    pedido, la base se los habría llevado antes y SQLAlchemy avisaría con un
+    `SAWarning` de filas no encontradas.
+    """
+    db.execute(delete(OrderEvent).where(OrderEvent.order_id == order.id))
     db.delete(order)
     db.commit()
